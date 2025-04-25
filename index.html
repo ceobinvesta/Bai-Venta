@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BAI Token - Venta Oficial</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        body {
+            font-family: "Georgia", serif;
+            background-color: #f5f3ed;
+            color: #333;
+            padding: 2rem;
+            max-width: 700px;
+            margin: auto;
+            border-radius: 12px;
+        }
+        h1 {
+            text-align: center;
+            color: #1e3d2f;
+        }
+        button {
+            background-color: #1e3d2f;
+            color: white;
+            padding: 1rem;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        input {
+            padding: 1rem;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .info {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>BAI Token - Avalanche</h1>
+    <div class="info">
+        <p><strong>¿Qué es BAI?</strong><br>
+        BAI es una moneda digital respaldada por el fondo B&A Investment Fund. Representa participación directa en un ecosistema de inversión con enfoque en activos reales y financieros. Esta es la venta oficial en la red Avalanche.</p>
+        <p><strong>Precio:</strong> 1 AVAX = 250,000 BAI</p>
+        <p><strong>Mínimo de compra:</strong> 0.14 AVAX (~$5 USD)</p>
+        <p><strong>Contrato de BAI:</strong><br>0xd90eb59747244FE07f863e3b09f031967d051144</p>
+        <p><strong>Contrato de venta:</strong><br>0x177bC12B3c5390C732a1Ee345650daa52d73D248</p>
+    </div>
+
+    <button id="connectButton">Conectar Wallet</button>
+    <input id="amountInput" type="number" placeholder="Cantidad de AVAX">
+    <button id="buyButton">Comprar BAI</button>
+    <button id="balanceButton">Ver mi balance de BAI</button>
+
+    <p id="status" style="margin-top: 20px;"></p>
+
+    <script>
+        const tokenAddress = "0xd90eb59747244FE07f863e3b09f031967d051144";
+        const saleAddress = "0x177bC12B3c5390C732a1Ee345650daa52d73D248";
+        const minAvax = 0.14;
+
+        let web3;
+        let userAccount;
+
+        window.addEventListener('load', async () => {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+            } else {
+                document.getElementById("status").innerText = "MetaMask no está disponible.";
+            }
+        });
+
+        document.getElementById("connectButton").onclick = async () => {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0];
+            document.getElementById("status").innerText = "Conectado: " + userAccount;
+        };
+
+        document.getElementById("buyButton").onclick = async () => {
+            const amount = parseFloat(document.getElementById("amountInput").value);
+            if (isNaN(amount) || amount < minAvax) {
+                document.getElementById("status").innerText = "Debes enviar al menos 0.14 AVAX.";
+                return;
+            }
+
+            try {
+                await web3.eth.sendTransaction({
+                    from: userAccount,
+                    to: saleAddress,
+                    value: web3.utils.toWei(amount.toString(), "ether")
+                });
+                document.getElementById("status").innerText = "Compra exitosa!";
+            } catch (error) {
+                document.getElementById("status").innerText = "Error: " + error.message;
+            }
+        };
+
+        document.getElementById("balanceButton").onclick = async () => {
+            const contract = new web3.eth.Contract([
+                { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "", "type": "uint256" }], "type": "function" }
+            ], tokenAddress);
+
+            const balance = await contract.methods.balanceOf(userAccount).call();
+            const formatted = web3.utils.fromWei(balance, "ether");
+            document.getElementById("status").innerText = "Tienes " + formatted + " BAI.";
+        };
+    </script>
+</body>
+</html>
